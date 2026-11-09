@@ -13,10 +13,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 DB_CONFIG = {
-    # "host": "localhost",
-    # "port": "5432",
-    # "user": "postgres",
-    # "password": "@kiL2207"
     "host": os.getenv("DB_HOST"),
     "port": os.getenv("DB_PORT"),
     "user": os.getenv("DB_USER"),
