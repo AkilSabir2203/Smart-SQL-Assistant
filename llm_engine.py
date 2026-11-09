@@ -1059,94 +1059,95 @@ if __name__ == "__main__":
     # ======================================================
     # TERMINAL
     # ======================================================
+    if __name__ == "__main__":
+        print("\n")
+        print(
+            "\n=================================================="
+        )
 
-    print(
-        "\n=================================================="
-    )
+        print(
+            "🤖 Welcome to Smart SQL Assistant"
+        )
 
-    print(
-        "🤖 Welcome to Smart SQL Assistant"
-    )
+        print(
+            "=================================================="
+        )
 
-    print(
-        "=================================================="
-    )
-
-    print(
-        "\nType 'exit' or 'quit' to close.\n"
-    )
+        print(
+            "\nType 'exit' or 'quit' to close.\n"
+        )
 
 
-    # ======================================================
-    # INTERACTIVE LOOP
-    # ======================================================
+        # ======================================================
+        # INTERACTIVE LOOP
+        # ======================================================
 
-while True:
+    while True:
 
-    user_question = input("📝 Enter your request: ")
+        user_question = input("📝 Enter your request: ")
 
-    if user_question.lower().strip() in ["exit", "quit"]:
-        break
+        if user_question.lower().strip() in ["exit", "quit"]:
+            break
 
-    # 1. Get database + table metadata
-    database_metadata = get_all_database_metadata(
-        available_databases
-    )
+        # 1. Get database + table metadata
+        database_metadata = get_all_database_metadata(
+            available_databases
+        )
 
-    # 2. LLM chooses database FOR THIS QUESTION
-    selected_database, error = choose_database(
-        user_question,
-        database_metadata
-    )
+        # 2. LLM chooses database FOR THIS QUESTION
+        selected_database, error = choose_database(
+            user_question,
+            database_metadata
+        )
 
-    if error:
-        print(error)
-        continue
+        if error:
+            print(error)
+            continue
 
-    print(f"🤖 Selected database: {selected_database}")
+        print(f"🤖 Selected database: {selected_database}")
 
-    # 3. Validate selected database
-    if selected_database not in available_databases:
-        print("🚫 Invalid database selected.")
-        continue
+        # 3. Validate selected database
+        if selected_database not in available_databases:
+            print("🚫 Invalid database selected.")
+            continue
 
-    # 4. Connect ONLY to selected database
-    selected_schema, schema_error = get_database_schema(
-        selected_database
-    )
+        # 4. Connect ONLY to selected database
+        selected_schema, schema_error = get_database_schema(
+            selected_database
+        )
 
-    if schema_error:
-        print(schema_error)
-        continue
+        if schema_error:
+            print(schema_error)
+            continue
 
-    # 5. Get relationships from selected database
-    relationship_text = get_database_relationships(
-        selected_database
-    )
+        # 5. Get relationships from selected database
+        relationship_text = get_database_relationships(
+            selected_database
+        )
 
-    # 6. Generate SQL using selected database schema
-    generated_sql = generate_sql(
-        user_question,
-        selected_database,
-        selected_schema,
-        relationship_text
-    )
+        # 6. Generate SQL using selected database schema
+        generated_sql = generate_sql(
+            user_question,
+            selected_database,
+            selected_schema,
+            relationship_text
+        )
 
-    print(f"\n🤖 Generated SQL:\n{generated_sql}")
+        print(f"\n🤖 Generated SQL:\n{generated_sql}")
 
-    # 7. Validate SQL
-    if not is_read_only_query(generated_sql):
-        print("🚫 Query blocked!")
-        continue
+        # 7. Validate SQL
+        if not is_read_only_query(generated_sql):
+            print("🚫 Query blocked!")
+            continue
 
-    # 8. Connect to selected database and execute
-    columns, results = execute_sql(
-        selected_database,
-        generated_sql
-    )
+        # 8. Connect to selected database and execute
+        columns, results = execute_sql(
+            selected_database,
+            generated_sql
+        )
 
-    # 9. Display results
-    display_results(
-        columns,
-        results
-    )
+        # 9. Display results
+        display_results(
+            columns,
+            results
+        )
