@@ -9,6 +9,7 @@ from llm_engine import (
     get_database_relationships,
     generate_sql,
     is_read_only_query,
+    validate_sql_syntax,
     execute_sql
 )
 
@@ -163,7 +164,17 @@ if prompt := st.chat_input("e.g., Top 5 salaries of Employees"):
                 st.subheader("Generated SQL Query")
                 st.code(generated_sql, language="sql")
 
-                if not is_read_only_query(generated_sql):
+                syntax_error = validate_sql_syntax(generated_sql, dbms_choice)
+                if syntax_error:
+                    err_msg = syntax_error
+                    st.error(f"🚫 {err_msg}")
+                    st.session_state.messages.append({
+                        "role": "assistant",
+                        "selected_db": selected_db,
+                        "sql": generated_sql,
+                        "error": err_msg
+                    })
+                elif not is_read_only_query(generated_sql):
                     err_msg = "BLOCKED: Only SELECT queries are allowed."
                     st.error(f"🚫 {err_msg}")
                     st.session_state.messages.append({

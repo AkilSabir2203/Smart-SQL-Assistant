@@ -4,6 +4,8 @@ import psycopg2
 import mysql.connector
 import ollama
 import os
+import sqlglot
+from sqlglot.errors import ParseError
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -298,9 +300,35 @@ def is_read_only_query(sql_query):
     return True
 
 
+def validate_sql_syntax(sql_query, dbms_type):
+    """Validate one generated SQL statement using the target database dialect."""
+    if not sql_query or not sql_query.strip():
+        return "Generated SQL query is empty."
+
+    dialects = {
+        "postgresql": "postgres",
+        "mysql": "mysql"
+    }
+    dialect = dialects.get(dbms_type.lower().strip())
+    if dialect is None:
+        return f"Unsupported DBMS type: {dbms_type}"
+
+    try:
+        statements = sqlglot.parse(sql_query, read=dialect)
+    except ParseError as e:
+        return f"SQL syntax validation failed: {e}"
+
+    if len(statements) != 1:
+        return "SQL syntax validation failed: exactly one SQL statement is required."
+    return None
+
+
 def execute_sql(dbms_type, host, port, user, password, selected_database, sql_query):
     if not is_read_only_query(sql_query):
         return None, None, "BLOCKED: Only SELECT queries are allowed."
+    syntax_error = validate_sql_syntax(sql_query, dbms_type)
+    if syntax_error:
+        return None, None, syntax_error
     try:
         conn = create_connection(dbms_type, host, port, user, password, selected_database)
         cursor = conn.cursor()
