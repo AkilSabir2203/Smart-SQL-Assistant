@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import time
 
 from llm_engine import (
     get_available_databases,
@@ -12,6 +13,7 @@ from llm_engine import (
     validate_sql_syntax,
     execute_sql
 )
+from metrics import record_model_outcome
 
 # ==========================================================
 # PAGE CONFIGURATION & STYLING
@@ -118,7 +120,7 @@ for message in st.session_state.messages:
 
 # Chat Input Box
 if prompt := st.chat_input("e.g., Top 5 salaries of Employees"):
-    
+    request_start = time.perf_counter()
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.write(prompt)
@@ -174,6 +176,10 @@ if prompt := st.chat_input("e.g., Top 5 salaries of Employees"):
                         "sql": generated_sql,
                         "error": err_msg
                     })
+                    record_model_outcome(
+                        selected_model, False, time.perf_counter() - request_start,
+                        False, False, "sql_generation", "syntax_validation"
+                    )
                 elif not is_read_only_query(generated_sql):
                     err_msg = "BLOCKED: Only SELECT queries are allowed."
                     st.error(f"🚫 {err_msg}")
@@ -183,6 +189,10 @@ if prompt := st.chat_input("e.g., Top 5 salaries of Employees"):
                         "sql": generated_sql,
                         "error": err_msg
                     })
+                    record_model_outcome(
+                        selected_model, False, time.perf_counter() - request_start,
+                        True, False, "read_only_policy", "read_only_block"
+                    )
                 else:
                     with st.spinner("Executing query on database..."):
                         columns, results, exec_err = execute_sql(
@@ -197,6 +207,10 @@ if prompt := st.chat_input("e.g., Top 5 salaries of Employees"):
                             "sql": generated_sql,
                             "error": exec_err
                         })
+                        record_model_outcome(
+                            selected_model, False, time.perf_counter() - request_start,
+                            True, False, "database_execution", "database_execution"
+                        )
                     else:
                         st.subheader("Query Results")
                         df = pd.DataFrame(results, columns=columns) if results else pd.DataFrame(columns=columns)
@@ -212,3 +226,7 @@ if prompt := st.chat_input("e.g., Top 5 salaries of Employees"):
                             "sql": generated_sql,
                             "df": df
                         })
+                        record_model_outcome(
+                            selected_model, True, time.perf_counter() - request_start,
+                            True, True, "database_execution"
+                        )

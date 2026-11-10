@@ -323,6 +323,23 @@ Review the displayed SQL and the database error before retrying with a more spec
 
 ## Development and Validation
 
+### Metrics dashboard
+
+Run the SQL evaluation dashboard separately from the main assistant:
+
+```powershell
+.\venv\Scripts\streamlit.exe run metrics.py
+```
+
+Run prompts normally in `app.py`; each completed prompt records only anonymized telemetry in `.metrics_history.json`, which is ignored by Git. No prompt, generated SQL, database name, result rows, or raw database error is stored. The dashboard displays:
+
+- Total and successful query counts.
+- Success, syntax-validity, and execution-success rates.
+- Llama versus Qwen comparison bar charts.
+- Latency charts and anonymized chat activity.
+
+The chat activity table contains only the iteration number, model, outcome flags, latency, processing stage, and an error category.
+
 Compile the Python modules:
 
 ```powershell
