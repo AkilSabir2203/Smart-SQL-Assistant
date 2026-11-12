@@ -15,9 +15,6 @@ from llm_engine import (
 )
 from metrics import record_model_outcome
 
-# ==========================================================
-# PAGE CONFIGURATION & STYLING
-# ==========================================================
 
 st.set_page_config(
     page_title="Smart SQL Assistant",
@@ -35,27 +32,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-
-# ==========================================================
-# SIDEBAR CONTROLS (DBMS & Credentials Configuration)
-# ==========================================================
-
 st.sidebar.title("⚙️ Connection Settings")
 
-# 1. Select DBMS Type (Switch between PostgreSQL and MySQL)
 dbms_choice = st.sidebar.selectbox(
     "🗄️ Select DBMS",
     options=["PostgreSQL", "MySQL"],
     index=0
 )
 
-# 2. Connection Credentials Inputs
 db_host = st.sidebar.text_input("Host", value="localhost")
 db_port = st.sidebar.text_input("Port", value="5432" if dbms_choice == "PostgreSQL" else "3306")
 db_user = st.sidebar.text_input("Username", value="postgres" if dbms_choice == "PostgreSQL" else "root")
 db_password = st.sidebar.text_input("Password", type="password", value="")
 
-# 3. Model Switcher Dropdown
 selected_model = st.sidebar.selectbox(
     "🤖 Select LLM Model",
     options=["qwen2.5-coder:1.5b", "llama3.2"],
@@ -65,7 +54,6 @@ selected_model = st.sidebar.selectbox(
 st.sidebar.divider()
 st.sidebar.subheader("📊 Database Status")
 
-# Fetch available databases using entered credentials
 available_dbs = get_available_databases(dbms_choice, db_host, db_port, db_user, db_password)
 
 if available_dbs:
@@ -75,7 +63,6 @@ if available_dbs:
 else:
     st.sidebar.warning("⚠️ Enter valid credentials and password above to connect.")
 
-# View database schemas in sidebar expander
 with st.sidebar.expander("🔍 Inspect Database Schemas"):
     if available_dbs:
         for db in available_dbs:
@@ -87,14 +74,9 @@ with st.sidebar.expander("🔍 Inspect Database Schemas"):
                 st.caption(err)
 
 
-# ==========================================================
-# MAIN CHAT INTERFACE
-# ==========================================================
-
 st.title("🤖 Smart SQL Assistant")
 st.caption(f"Connected to **{dbms_choice}** database server. Ask natural language questions to query your data securely.")
 
-# Initialize chat session history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
@@ -118,7 +100,6 @@ for message in st.session_state.messages:
             if "error" in message and message["error"]:
                 st.error(message["error"])
 
-# Chat Input Box
 if prompt := st.chat_input("e.g., Top 5 salaries of Employees"):
     request_start = time.perf_counter()
     st.session_state.messages.append({"role": "user", "content": prompt})

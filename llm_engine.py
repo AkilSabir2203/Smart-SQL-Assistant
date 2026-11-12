@@ -13,9 +13,6 @@ load_dotenv()
 TARGET_MODEL = "qwen2.5-coder:1.5b"
 ALLOWED_DATABASES = ["Company", "community_mca", "testdb"]
 
-# ==========================================================
-# CREATE CONNECTION (Dynamic DBMS Support)
-# ==========================================================
 
 def create_connection(dbms_type, host, port, user, password, dbname):
     dbms_type = dbms_type.lower().strip()
@@ -39,10 +36,6 @@ def create_connection(dbms_type, host, port, user, password, dbname):
     else:
         raise ValueError(f"Unsupported DBMS type: {dbms_type}")
 
-
-# ==========================================================
-# DISCOVER DATABASES
-# ==========================================================
 
 def get_available_databases(dbms_type, host, port, user, password):
     try:
@@ -75,9 +68,7 @@ def get_available_databases(dbms_type, host, port, user, password):
         return []
 
 
-# ==========================================================
-# GET DATABASE TABLE/COLUMN METADATA
-# ==========================================================
+
 
 def get_database_metadata(dbms_type, host, port, user, password, database):
     try:
@@ -167,9 +158,6 @@ Do not output markdown, explanations, or reasoning.
         return None, f"LLM Error: {e}"
 
 
-# ==========================================================
-# GET SCHEMA & RELATIONSHIPS
-# ==========================================================
 
 def get_database_schema(dbms_type, host, port, user, password, database):
     try:
@@ -250,9 +238,6 @@ def get_database_relationships(dbms_type, host, port, user, password, database):
         return f"Relationship extraction error: {e}"
 
 
-# ==========================================================
-# GENERATE & EXECUTE SQL
-# ==========================================================
 
 def generate_sql(user_query, selected_database, schema_text, relationship_text, model_name=TARGET_MODEL):
     system_prompt = f"""

@@ -2,17 +2,15 @@ import psycopg2
 
 def get_database_schema():
     try:
-        # Update these credentials to match your native local installation
         conn = psycopg2.connect(
             host="localhost",
             port="5432",
-            user="postgres",             # Update if your username is different
-            password="@kiL2207",    # Enter your actual PostgreSQL password here
-            dbname="community_mca"  # Enter the database name where your data lives
+            user="postgres",           
+            password="@kiL2207",   
+            dbname="community_mca" 
         )
         cursor = conn.cursor()
 
-        # Query the information_schema for tables and columns
         query = """
         SELECT table_name, column_name, data_type 
         FROM information_schema.columns 
