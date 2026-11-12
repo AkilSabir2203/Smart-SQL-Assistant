@@ -4,6 +4,7 @@ import psycopg2
 import mysql.connector
 import ollama
 import os
+import re
 import sqlglot
 from sqlglot.errors import ParseError
 from dotenv import load_dotenv
@@ -239,8 +240,16 @@ def get_database_relationships(dbms_type, host, port, user, password, database):
 
 
 
-def generate_sql(user_query, selected_database, schema_text, relationship_text, model_name=TARGET_MODEL):
-    system_prompt = f"""
+
+
+def generate_sql(
+    user_query,
+    selected_database,
+    schema_text,
+    relationship_text,
+    model_name=TARGET_MODEL,
+):
+  system_prompt = f"""
 You are an expert SQL generator. Convert the user's natural language question into a correct SELECT query.
 
 DATABASE: {selected_database}
@@ -252,24 +261,27 @@ RELATIONSHIPS:
 
 ONLY SELECT queries are allowed. Return ONLY raw SQL without markdown or explanation.
 """
-    try:
-        response = ollama.chat(
-            model=model_name,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_query}
-            ]
-        )
-        raw_sql = response["message"]["content"].strip()
-        if raw_sql.startswith("```sql"):
-            raw_sql = raw_sql[6:]
-        elif raw_sql.startswith("```"):
-            raw_sql = raw_sql[3:]
-        if raw_sql.endswith("```"):
-            raw_sql = raw_sql[:-3]
-        return raw_sql.strip()
-    except Exception as e:
-        return f"LLM Error: {e}"
+  try:
+    response = ollama.chat(
+        model=model_name,
+        messages=[
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": user_query},
+        ],
+    )
+    raw_output = response["message"]["content"].strip()
+
+    # Robust extraction: look for a sql code block anywhere in the output
+    match = re.search(r"```(?:sql)?\s*(.*?)\s*```", raw_output, re.DOTALL)
+    if match:
+      sql_query = match.group(1)
+    else:
+      # Fallback if the LLM didn't use code blocks but didn't include chat
+      sql_query = raw_output
+
+    return sql_query.strip()
+  except Exception as e:
+    return f"LLM Error: {e}"
 
 
 def is_read_only_query(sql_query):
